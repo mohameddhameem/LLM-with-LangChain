@@ -1,0 +1,13 @@
+# IntelliJ IDEA
+.idea/
+
+# IntelliJ project files
+*.iml
+*.ipr
+*.iws
+
+# IntelliJ code style settings
+.idea/codeStyles/
+
+# IntelliJ inspection profiles
+.idea/inspectionProfiles/
