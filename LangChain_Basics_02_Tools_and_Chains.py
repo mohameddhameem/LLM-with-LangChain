@@ -2,6 +2,10 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from langchain.schema.runnable import RunnablePassthrough
+from langchain.chains.api.prompt import API_RESPONSE_PROMPT
+from langchain.chains.api import open_meteo_docs
+from langchain.chains import APIChain
+from langchain_openai import OpenAI
 
 # Initialize the OpenAI chat model with specified parameters
 llm = ChatOpenAI(model_name='gpt-3.5-turbo',
@@ -75,5 +79,51 @@ chain = (
         {"facts": fact_extraction_chain}
         | RunnablePassthrough.assign(review=investor_update_chain))
 
-response = chain.invoke({"text_input": article})
-print(response)
+# response = chain.invoke({"text_input": article})
+# print(response)
+
+print("===============================================")
+print("PAL Math Chain")
+
+# import PAL chain
+from langchain_experimental.pal_chain import PALChain
+llm = OpenAI(model_name='gpt-3.5-turbo-instruct',
+             temperature=0,
+             max_tokens=512)
+pal_chain = PALChain.from_math_prompt(llm, verbose=True)
+question = "Jan has three times the number of pets as Marcia. Marcia has two more pets than Cindy. If Cindy has four pets, how many total pets do the three have?"
+print(pal_chain.invoke(question))
+
+print("===============================================")
+print("API Chains - OpenMeteo - Weather information. This is a outdated code. Wait for new code")
+
+
+
+llm = OpenAI(temperature=0,
+             max_tokens=100)
+
+api_docs = """
+
+BASE URL: https://restcountries.com/
+
+API Documentation:
+
+The API endpoint /v3.1/name/{name} Used to find informatin about a country. All URL parameters are listed below:
+    - name: Name of country - Ex: italy, france
+    
+The API endpoint /v3.1/currency/{currency} Uesd to find information about a region. All URL parameters are listed below:
+    - currency: 3 letter currency. Example: USD, COP
+    
+Woo! This is my documentation
+"""
+
+chain_new = APIChain.from_llm_and_api_docs(llm, api_docs, verbose=True)
+
+print(chain_new.run('Can you tell me information about france?'))
+
+chain_new = APIChain.from_llm_and_api_docs(llm,
+                                           open_meteo_docs.OPEN_METEO_DOCS,
+                                           verbose=True)
+
+weather_response = chain_new.invoke("What is the temperature like right now in Bedok, Singapore in degrees Celcius?")
+
