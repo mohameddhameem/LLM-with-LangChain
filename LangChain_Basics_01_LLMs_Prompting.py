@@ -1,8 +1,6 @@
-from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
- 
 
 # Initialize the OpenAI chat model with specified parameters
 llm = ChatOpenAI(model_name='gpt-3.5-turbo',
