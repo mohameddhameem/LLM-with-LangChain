@@ -87,6 +87,7 @@ print("PAL Math Chain")
 
 # import PAL chain
 from langchain_experimental.pal_chain import PALChain
+
 llm = OpenAI(model_name='gpt-3.5-turbo-instruct',
              temperature=0,
              max_tokens=512)
@@ -96,8 +97,6 @@ print(pal_chain.invoke(question))
 
 print("===============================================")
 print("API Chains - OpenMeteo - Weather information. This is a outdated code. Wait for new code")
-
-
 
 llm = OpenAI(temperature=0,
              max_tokens=100)
@@ -126,4 +125,3 @@ chain_new = APIChain.from_llm_and_api_docs(llm,
                                            verbose=True)
 
 weather_response = chain_new.invoke("What is the temperature like right now in Bedok, Singapore in degrees Celcius?")
-
