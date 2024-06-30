@@ -1,0 +1,18 @@
+{
+  "lc": 1,
+  "type": "constructor",
+  "id": [
+    "langchain",
+    "prompts",
+    "chat",
+    "ChatPromptTemplate"
+  ],
+  "kwargs": {
+    "input_variables": [
+      "agent_scratchpad",
+      "input",
+      "tool_names",
+      "tools"
+    ],
+    "input_types": {
+      "chat_history": 
