@@ -177,11 +177,22 @@ def agent(state: GraphState) -> GraphState:
         "tool_invocations": [tool_invocation]
     }
 
+
 # Update the tool_executor function
 def tool_executor(state: GraphState) -> GraphState:
     agent_state = state['agent_state']
+    
+    # Debug statement to print the current state of tool_invocations
+    print(f"Current tool_invocations: {state['tool_invocations']}")
+    
+    if not state['tool_invocations']:
+        # Handle the case where tool_invocations is empty
+        print("No tool invocations found. Returning without executing any tool.")
+        return {"agent_state": agent_state, "tool_invocations": []}
+    
     tool_invocation = state['tool_invocations'][0]
     tool_executor = ToolExecutor(tools)
+    
     try:
         result = tool_executor.invoke(tool_invocation)
         agent_state.memory.save_context({"human": tool_invocation.tool}, {"ai": str(result)})
@@ -190,7 +201,9 @@ def tool_executor(state: GraphState) -> GraphState:
         error_message = f"Error executing tool {tool_invocation.tool}: {str(e)}"
         print(error_message)
         agent_state.messages.append(error_message)
+        
     return {"agent_state": agent_state, "tool_invocations": []}
+
 
 # Create the graph with increased recursion limit
 workflow = StateGraph(GraphState)
@@ -202,21 +215,6 @@ workflow.set_entry_point("agent")
 
 # Compile the graph with increased recursion limit
 app = workflow.compile()
-
-
-# Function to run the agent
-def run_agent(task: str) -> Dict[str, Any]:
-    initial_state = GraphState(
-        agent_state=AgentState(task=task, tools=tools),
-        tool_invocations=[]
-    )
-    result = app.invoke(initial_state)
-    if result.get("tool_invocations") == [END]:
-        print("Task completed successfully")
-    return {
-        "messages": result["agent_state"].messages,
-        "memory": result["agent_state"].memory.load_memory_variables({})["history"],
-    }
 
 
 async def run_agent_with_timeout(task: str, timeout: int = 300) -> Dict[str, Any]:
