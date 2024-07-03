@@ -17,21 +17,21 @@ prompt = hub.pull("hwchase17/structured-chat-agent")
 prompt.save("structured_chat_agent_prompt.json")
 
 
-# llm = ChatOpenAI(model_name='gpt-3.5-turbo',
-#                  temperature=0.9,
-#                  max_tokens=256)
+llm = ChatOpenAI(model_name='gpt-3.5-turbo',
+                 temperature=0.9,
+                 max_tokens=256)
 
-# agent = create_structured_chat_agent(llm, tools, prompt)
-# agent_chain = AgentExecutor(agent=agent, tools=tools, verbose=True,
-#                             handle_parsing_errors=True,
-#                             return_intermediate_steps=True)
+agent = create_structured_chat_agent(llm, tools, prompt)
+agent_chain = AgentExecutor(agent=agent, tools=tools, verbose=True,
+                            handle_parsing_errors=True,
+                            return_intermediate_steps=True)
 
-# async def main():
-#     response = await agent_chain.ainvoke({"input": "What are the headers on python.langchain.com and list all hyperlinks?"})
-#     print(response['output'])
+async def main():
+    response = await agent_chain.ainvoke({"input": "What are the headers on python.langchain.com and list all hyperlinks?"})
+    print(response['output'])
 
 
-# import asyncio
+import asyncio
 
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())

@@ -99,15 +99,28 @@ class ClickTool(BaseTool):
     def _run(self, selector: str):
         return execute_playwright_op(click, selector)
 
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+
 class TypeTool(BaseTool):
     name = "type"
     description = "Type text into an input field. Provide the selector and text separated by a comma."
     args_schema = TypeInput
+    playwright_timeout: float = 30000  # 30 seconds timeout
 
     def _run(self, selector_and_text: str):
         try:
             selector, text = selector_and_text.split(',', 1)
-            return execute_playwright_op(type_text, selector.strip(), text.strip())
+            selector = selector.strip()
+            text = text.strip()
+            
+            def type_with_retry(page, selector: str, text: str) -> str:
+                try:
+                    page.fill(selector, text, timeout=self.playwright_timeout)
+                    return f"Typed '{text}' into element with selector: {selector}"
+                except PlaywrightTimeoutError:
+                    return f"Unable to type into element '{selector}'. Element not found or not interactable."
+
+            return execute_playwright_op(type_with_retry, selector, text)
         except ValueError:
             return "Error: Please provide both the selector and text, separated by a comma."
 
