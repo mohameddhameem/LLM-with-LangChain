@@ -10,17 +10,9 @@ from langchain.tools import BaseTool
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt.tool_executor import ToolExecutor, ToolInvocation
-from langchain_community.tools.playwright.click import ClickTool
-from langchain_community.tools.playwright.current_page import CurrentWebPageTool
-from langchain_community.tools.playwright.extract_hyperlinks import (
-    ExtractHyperlinksTool,
-)
-from langchain_community.tools.playwright.extract_text import ExtractTextTool
-from langchain_community.tools.playwright.get_elements import GetElementsTool
-from langchain_community.tools.playwright.navigate import NavigateTool
-from langchain_community.tools.playwright.navigate_back import NavigateBackTool
-from playwright.sync_api import sync_playwright
-
+from langchain_community.agent_toolkits import PlayWrightBrowserToolkit
+from langchain_community.tools.playwright.utils import create_sync_playwright_browser
+from playwright.sync_api import sync_playwright  # Import sync_playwright
 
 # Define the state schema
 class AgentState(BaseModel):
@@ -29,15 +21,12 @@ class AgentState(BaseModel):
     memory: ConversationBufferMemory = Field(default_factory=ConversationBufferMemory)
     messages: List[str] = Field(default_factory=list)
 
-
 class GraphState(TypedDict):
     agent_state: AgentState
     tool_invocations: List[ToolInvocation]
 
-
 # Create a queue for Playwright operations
 playwright_queue = Queue()
-
 
 # Playwright thread function
 def playwright_thread():
@@ -59,40 +48,19 @@ def playwright_thread():
         page.close()
         browser.close()
 
-
 # Start the Playwright thread
 threading.Thread(target=playwright_thread, daemon=True).start()
 
+# Create the browser instance
+sync_browser = create_sync_playwright_browser()
+toolkit = PlayWrightBrowserToolkit.from_browser(sync_browser=sync_browser)
+tools = toolkit.get_tools()
 
-# Define the tools
-tools = [
-    NavigateTool(),
-    CurrentWebPageTool(),
-    ExtractHyperlinksTool(),
-    ExtractTextTool(),
-    GetElementsTool(),
-    NavigateBackTool(),
-    ClickTool(),
-    ExtractTextTool()
-]
-
-
-# Define the state schema
-class AgentState(BaseModel):
-    task: str
-    tools: List[BaseTool]
-    memory: ConversationBufferMemory = Field(default_factory=ConversationBufferMemory)
-    messages: List[str] = Field(default_factory=list)
-
-
-class GraphState(TypedDict):
-    agent_state: AgentState
-    tool_invocations: List[ToolInvocation]
-
+# Choose the LLM that will drive the agent
+llm = ChatOpenAI(model="gpt-4", temperature=0)
 
 def agent(state: GraphState) -> GraphState:
     agent_state = state['agent_state']
-    llm = ChatOpenAI(temperature=0)
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are an AI assistant that helps with web automation tasks. Use the provided tools to complete the task. The available tools are: Navigate, Click, Type, and Extract Text. Respond with the tool name and input in the format: TOOL: tool_name, INPUT: tool_input. Ensure tool_input contains valid CSS selectors for the Click and Type tools. If you believe the task is complete, respond with COMPLETE: reason."),
         ("human", "{task}"),
@@ -130,7 +98,6 @@ def agent(state: GraphState) -> GraphState:
         "tool_invocations": [tool_invocation]
     }
 
-
 def tool_executor(state: GraphState) -> GraphState:
     agent_state = state['agent_state']
     tool_invocation = state['tool_invocations'][0]
@@ -155,7 +122,6 @@ workflow.set_entry_point("agent")
 # Compile the graph with increased recursion limit
 app = workflow.compile()
 
-
 # Function to run the agent
 def run_agent(task: str) -> Dict[str, Any]:
     initial_state = GraphState(
@@ -169,7 +135,6 @@ def run_agent(task: str) -> Dict[str, Any]:
         "messages": result["agent_state"].messages,
         "memory": result["agent_state"].memory.load_memory_variables({})["history"],
     }
-
 
 # Example usage
 task = "Book a hotel room on hotels.com for 2 days in New York City"
