@@ -1,0 +1,12 @@
+{
+  "question": "tell me a joke",
+  "steps": [
+    "Action: Type, Args: ['6', 'tell me a joke'], URL: https://www.google.com/",
+    "Action: Click, Args: ['6'], URL: https://www.google.com/search?q=tell+me+a+joke&sca_esv=d97642cf3db1ceac&sca_upv=1&source=hp&ei=fW6JZpDRLZKOseMPp9C9wAs&iflsig=AL9hbdgAAAAAZol8jbfnG1lZnyx09vhCdT5qvMTnvNtz&ved=0ahUKEwjQg9nR6JKHAxUSR2wGHSdoD7gQ4dUDCA8&uact=5&oq=tell+me+a+joke&gs_lp=Egdnd3Mtd2l6Ig50ZWxsIG1lIGEgam9rZTIFEC4YgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgARI-QRQeFjTBHABeACQAQCYATugAZYFqgECMTO4AQPIAQD4AQGYAg6gAq0GqAIKwgIQEAAYAxjlAhjqAhiMAxiPAcICEBAuGAMY5QIY6gIYjAMYjwHCAgsQABiABBixAxiDAcICERAuGIAEGLEDGNEDGIMBGMcBwgIIEAAYgAQYsQPCAg4QLhiABBixAxjRAxjHAcICDhAAGIAEGLEDGIMBGIoFwgIOEC4YgAQYsQMYgwEYigXCAgsQLhiABBixAxiKBcICCBAuGIAEGLEDwgILEC4YgAQYsQMYgwGYAxiSBwIxNKAHiZgB&sclient=gws-wiz",
+    "Action: Click, Args: ['2'], URL: https://www.google.com/search?q=tell+me+a+joke&sca_esv=d97642cf3db1ceac&sca_upv=1&ei=gm6JZp6bG-KRseMPgMOJMA&ved=0ahUKEwie5PfT6JKHAxXiSGwGHYBhAgYQ4dUDCA8&oq=tell+me+a+joke&gs_lp=Egxnd3Mtd2l6LXNlcnAiDnRlbGwgbWUgYSBqb2tlSABQAFgAcAB4AZABAJgBAKABAKoBALgBDMgBAJgCAKACAJgDAJIHAKAHAA&sclient=gws-wiz-serp",
+    "Action: Click, Args: ['11'], URL: https://www.google.com/search?q=tell+me+a+joke&sca_esv=d97642cf3db1ceac&sca_upv=1&ei=gm6JZp6bG-KRseMPgMOJMA&ved=0ahUKEwie5PfT6JKHAxXiSGwGHYBhAgYQ4dUDCA8&oq=tell+me+a+joke&gs_lp=Egxnd3Mtd2l6LXNlcnAiDnRlbGwgbWUgYSBqb2tlSABQAFgAcAB4AZABAJgBAKABAKoBALgBDMgBAJgCAKACAJgDAJIHAKAHAA&sclient=gws-wiz-serp",
+    "Action: ANSWER;, Args: ['What did one snowman say to the other? Do you smell carrots?'], URL: https://blog.google/products/assistant/ok-google-tell-me-a-joke/"
+  ],
+  "final_answer": "What did one snowman say to the other? Do you smell carrots?",
+  "timestamp": "2024-07-07T00:19:30.162135"
+}
