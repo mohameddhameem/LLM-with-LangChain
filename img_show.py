@@ -1,51 +1,108 @@
 import tkinter as tk
+from tkinter import scrolledtext, ttk
 from PIL import Image, ImageTk
-import matplotlib.pyplot as plt
+import json
+import base64
+from openai import OpenAI
+import logging
+
+# Set up logging
+logging.basicConfig(filename='gpt_vision_log.txt', level=logging.INFO, 
+                    format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+# Initialize OpenAI client
+client = OpenAI()
+
+class ScrollableImage(ttk.Frame):
+    def __init__(self, master=None, **kw):
+        ttk.Frame.__init__(self, master=master, **kw)
+        self.canvas = tk.Canvas(self)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.scrollbar_y = ttk.Scrollbar(self, orient=tk.VERTICAL)
+        self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.scrollbar_x = ttk.Scrollbar(self, orient=tk.HORIZONTAL)
+        self.scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.canvas.configure(yscrollcommand=self.scrollbar_y.set, xscrollcommand=self.scrollbar_x.set)
+        self.scrollbar_y.configure(command=self.canvas.yview)
+        self.scrollbar_x.configure(command=self.canvas.xview)
+
+        self.canvas.bind('<Configure>', self.update_scrollregion)
+
+    def update_scrollregion(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+def query_gpt4v(image_path, prompt):
+    with open(image_path, "rb") as image_file:
+        encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+    
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": f"Find all instances of '{prompt}' in the image. Return a list of bounding boxes in the format [{{\"x1\": int, \"y1\": int, \"x2\": int, \"y2\": int}}]."},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}}
+            ]
+        }
+    ]
+    
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        max_tokens=300
+    )
+    
+    result = response.choices[0].message.content
+    
+    # Log the GPT Vision output
+    logging.info(f"Prompt: {prompt}")
+    logging.info(f"GPT Vision Output: {result}")
+    
+    return result
 
 def load_and_display_image():
-    global img, photo, canvas
+    global img, photo
     
-    # Get the image path from the entry
     image_path = image_entry.get()
     
     try:
-        # Open the image
         img = Image.open(image_path)
-        
-        # Convert to PhotoImage for Tkinter
         photo = ImageTk.PhotoImage(img)
         
-        # Update canvas with new image
-        canvas.config(width=img.width, height=img.height)
-        canvas.create_image(0, 0, anchor=tk.NW, image=photo)
+        scrollable_image.canvas.config(width=img.width, height=img.height)
+        scrollable_image.canvas.create_image(0, 0, anchor=tk.NW, image=photo)
         
-        # Enable coordinate input
-        x_entry.config(state='normal')
-        y_entry.config(state='normal')
-        plot_button.config(state='normal')
+        text_entry.config(state='normal')
+        query_button.config(state='normal')
+        clear_button.config(state='normal')
         
     except Exception as e:
         result_label.config(text=f"Error: {str(e)}")
 
-def plot_coordinates():
-    try:
-        x = int(x_entry.get())
-        y = int(y_entry.get())
-        
-        # Check if coordinates are within image bounds
-        if 0 <= x < img.width and 0 <= y < img.height:
-            # Draw a red dot at the specified coordinates
-            canvas.create_oval(x-3, y-3, x+3, y+3, fill='red', outline='red')
-            result_label.config(text=f"Dot plotted at ({x}, {y})")
-        else:
-            result_label.config(text="Coordinates out of image bounds")
+def query_and_display():
+    image_path = image_entry.get()
+    prompt = text_entry.get()
     
-    except ValueError:
-        result_label.config(text="Invalid coordinate input")
+    try:
+        gpt_output = query_gpt4v(image_path, prompt)
+        
+        result_textbox.delete(1.0, tk.END)
+        result_textbox.insert(tk.END, f"GPT-4 Vision output for '{prompt}':\n\n{gpt_output}")
+        
+        result_label.config(text="GPT-4 Vision query completed.")
+    
+    except Exception as e:
+        result_label.config(text=f"Error: {str(e)}")
+
+def clear_results():
+    result_label.config(text="Results cleared.")
+    result_textbox.delete(1.0, tk.END)
 
 # Create main window
 root = tk.Tk()
-root.title("Image Coordinate Plotter")
+root.title("GPT-4V Image Text Locator")
 
 # Create and pack widgets
 tk.Label(root, text="Enter PNG image path:").pack()
@@ -55,22 +112,25 @@ image_entry.pack()
 load_button = tk.Button(root, text="Load Image", command=load_and_display_image)
 load_button.pack()
 
-tk.Label(root, text="X coordinate:").pack()
-x_entry = tk.Entry(root, state='disabled')
-x_entry.pack()
+tk.Label(root, text="Enter text to locate:").pack()
+text_entry = tk.Entry(root, width=50, state='disabled')
+text_entry.pack()
 
-tk.Label(root, text="Y coordinate:").pack()
-y_entry = tk.Entry(root, state='disabled')
-y_entry.pack()
+query_button = tk.Button(root, text="Query GPT-4 Vision", command=query_and_display, state='disabled')
+query_button.pack()
 
-plot_button = tk.Button(root, text="Plot Coordinates", command=plot_coordinates, state='disabled')
-plot_button.pack()
+clear_button = tk.Button(root, text="Clear Results", command=clear_results, state='disabled')
+clear_button.pack()
 
 result_label = tk.Label(root, text="")
 result_label.pack()
 
-# Create canvas for image display
-canvas = tk.Canvas(root)
-canvas.pack()
+# Create scrolled text widget for results
+result_textbox = scrolledtext.ScrolledText(root, height=10, width=50)
+result_textbox.pack()
+
+# Create scrollable image frame
+scrollable_image = ScrollableImage(root)
+scrollable_image.pack(fill=tk.BOTH, expand=True)
 
 root.mainloop()
