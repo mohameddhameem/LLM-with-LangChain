@@ -1,0 +1,9 @@
+{
+    "start_url": "https://kikobeats.com/urls-for-testing/",
+    "username": "your_username",
+    "password": "your_password",
+    "form_values": {
+        "field_name1": "value1",
+        "field_name2": "value2"
+    }
+}
